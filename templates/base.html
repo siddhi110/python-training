@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}College Portal{% endblock %}</title>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/about">About</a> |
+        <a href="/books">Books</a>  
+    </nav>
+    <hr>
+    
+    {% block content %}{% endblock %}
+</body>
+</html>
