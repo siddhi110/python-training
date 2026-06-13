@@ -1,56 +1,60 @@
-from flask import Flask, request, render_template_string
+
+from flask import Flask, render_template, request, redirect, url_for
+import sqlite3
 
 app = Flask(__name__)
 
-# 1. get_db() function
 def get_db():
-    import sqlite3
-    db = sqlite3.connect('practice.db')
-    return db
+    conn = sqlite3.connect('practice.db')
+    conn.row_factory = sqlite3.Row  # HE LINE ADD KAR
+    return conn
 
-# 2. init_db() apna table
-def init_db():
-    db = get_db()
-    db.execute("CREATE TABLE IF NOT EXISTS STUDENTS (id INTEGER PRIMARY KEY, name TEXT)")
-    db.commit()
-    db.close()
-
-init_db()
-
-# 3. One SELECT route - Home page var data show karnar
+# Home Page - List all students
 @app.route('/')
-def home():
+def index():
     db = get_db()
     students = db.execute("SELECT * FROM STUDENTS").fetchall()
     db.close()
+    return render_template('Home.html', students=students)
 
-    return render_template_string('''
-        <h1>Database Practice</h1>
-
-        <h2>Add New Student</h2>
-        <form method="POST" action="/add">
-            <input name="name" placeholder="Student Name" required>
-            <button type="submit">Add Student</button>
-        </form>
-
-        <h2>All Students</h2>
-        {% if students %}
-            {% for student in students %}
-                <p>ID: {{student[0]}} | Name: {{student[1]}}</p>
-            {% endfor %}
-        {% else %}
-            <p>Database madhe ajun koni nahi.</p>
-        {% endif %}
-    ''', students=students)
-
-# 4. One INSERT route - Form se data taknar
-@app.route('/add', methods=['POST'])
+# Add Student
+@app.route('/add', methods=['GET', 'POST'])
 def add_student():
-    name = request.form['name']
+    if request.method == 'POST':
+        name = request.form['name']
+        marks = request.form['marks']
+        db = get_db()
+        db.execute("INSERT INTO STUDENTS (name, marks) VALUES (?, ?)", (name, marks))
+        db.commit()
+        db.close()
+        return redirect('/')
+    return render_template('add.html')
+
+# Update Student
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+def update_student(id):
     db = get_db()
-    db.execute("INSERT INTO STUDENTS (name) VALUES (?)", (name,))
+    db.row_factory = sqlite3.Row
+    
+    if request.method == 'POST':
+        new_name = request.form['name']
+        db.execute("UPDATE STUDENTS SET name=? WHERE id=?", (new_name, id))
+        db.commit()
+        db.close()
+        return redirect('/')
+    
+    student = db.execute("SELECT * FROM STUDENTS WHERE id=?", (id,)).fetchone()
+    db.close()
+    return render_template('update.html', student=student)
+
+# Delete Student
+@app.route('/delete/<int:id>')
+def delete_student(id):
+    db = get_db()
+    db.execute("DELETE FROM STUDENTS WHERE id=?", (id,))
     db.commit()
     db.close()
-    return "Student Added! <a href='/'>Go Back to Home</a>"
+    return redirect('/')
 
-app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)

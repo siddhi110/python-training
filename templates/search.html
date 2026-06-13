@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Students</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        input { padding: 8px; width: 300px; }
+        button { padding: 8px 15px; }
+    </style>
+</head>
+<body>
+    <h1>Student Search</h1>
+    
+    <form method="GET" action="/search">
+        <input type="text" name="q" placeholder="Name, Roll, Subject ne search kar..." value="{{ q }}">
+        <button type="submit">Search</button>
+    </form>
+    
+    <br>
+    <h2>Total Students: {{ students|length }}</h2>
+    
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Roll</th>
+            <th>Marks</th>
+            <th>Subject</th>
+        </tr>
+        {% for student in students %}
+        <tr>
+            <td>{{ student.id }}</td>
+            <td>{{ student.name }}</td>
+            <td>{{ student.roll }}</td>
+            <td>{{ student.marks }}</td>
+            <td>{{ student.subject }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% if students|length == 0 %}
+        <p>No students found. <a href="/add-sample">Click here to add sample data</a></p>
+    {% endif %}
+</body>
+</html>
