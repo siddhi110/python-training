@@ -77,37 +77,20 @@ def grid_view():
     conn.close()
     return render_template('grid_test.html', students=students, stats=stats, get_grade_data=get_grade_data)
 
-# EDIT STUDENT
-@app.route("/edit/<int:id>", methods=['GET', 'POST'])
-def edit_student(id):
+@app.route("/student/<int:id>")
+def student_card(id):
     conn = get_db()
-    
-    if request.method == 'POST':
-        name = request.form['name']
-        roll = request.form['roll']
-        marks = request.form['marks']
-        subject = request.form['subject']
-        
-        conn.execute(
-            "UPDATE students SET name=?, roll=?, marks=?, subject=? WHERE id=?",
-            (name, roll, marks, subject, id)
-        )
-        conn.commit()
-        conn.close()
-        return redirect(url_for('search'))
-    
     student = conn.execute("SELECT * FROM students WHERE id=?", (id,)).fetchone()
     conn.close()
-    return render_template("edit.html", student=student)
+    if student is None:
+        return "Student not found", 404
+    return render_template('card_test.html', student=student, get_grade_data=get_grade_data)
 
-# DELETE STUDENT
-@app.route("/delete/<int:id>")
-def delete_student(id):
-    conn = get_db()
-    conn.execute("DELETE FROM students WHERE id=?", (id,))
-    conn.commit()
+
     conn.close()
-    return redirect(url_for('search'))
+    if student is None:
+        return "Student not found", 404
+    return render_template('card_test.html', student=student, get_grade_data=get_grade_data)
 
 if __name__ == "__main__":
     app.run(debug=True)
